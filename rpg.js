@@ -76,12 +76,24 @@ var Character = function (name, level, hp, atk, def, luk) {
 var Player = function (name, level, hp, atk, def, luk, exp, job, money, goalExp, vicCount, defCount, state) {
     Character.apply(this, arguments);
     this.exp = exp || 0;
-    this.job = job || "마법사";
     this.money = money || 0;
     this.goalExp = 120;
     this.vicCount = vicCount || 0;
     this.defCount = defCount || 0;
     this.state = state || "normal";
+
+    var selectJobs = ["전사", "도적", "마법사"];
+    if (!job) {
+        var selectedJobs = prompt("직업을 선택하세요 (전사, 도적, 마법사):", "마법사");
+        if (selectJobs.includes(selectedJobs)) {
+            this.job = selectedJobs;
+        } else {
+            alert("유효하지 않은 직업입니다. 기본 직업(마법사)으로 설정됩니다.");
+            this.job = "마법사";
+        }
+    } else {
+        this.job = job;
+    }
 }
 
 // 프로토타입 연결
