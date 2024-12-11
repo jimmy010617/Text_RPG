@@ -13,15 +13,16 @@ var logArea = document.getElementById("log");
 
 // 밸런스 조절
 var ctrl = {
-    // 레벨업 시 상승 스텟
+    /* // 레벨업 시 상승하는 스테이터스
     levUpVal: {
-        hp: [50, 10],       // (레벨*50) + (레벨*10)
-        atk: 30,            // (레벨*30) + 보정
-        def: 40,            // (레벨*40) + 보정
-        luk: 10             // (레벨*10) + 보정
-    },
+        hp: [50, 10],   // (레벨*50) + (레벨*10)
+        atk: 30,        // (레벨*30) + 보정
+        def: 40,        // (레벨*40) + 보정
+        luk: 10         // (레벨*10) + 보정
+    }, */
+
     // 직업별 보정 수치
-    jobBonus: [10, 5, 0],   // 10/5/0%만큼 추가 스테이터스
+    jobBonus: [10, 5, 0, 20],   // 10/5/0%만큼 추가 스테이터스
 
     // 직업별 기본 스탯
     jobStats: {
@@ -469,33 +470,33 @@ Player.prototype.levelUp = function () {
 
     // 공격력 증가
     if (this.job === "마법사") {
-        this.atk = (this.level * ctrl.levUpVal.atk) * (1 + ctrl.jobBonus[0] / 100);
+        this.atk = (this.level * ctrl.jobStats.atk) * (1 + ctrl.jobBonus[0] / 100);
     } else if (this.job === "전사") {
-        this.atk = (this.level * ctrl.levUpVal.atk) * (1 + ctrl.jobBonus[1] / 100);
+        this.atk = (this.level * ctrl.jobStats.atk) * (1 + ctrl.jobBonus[1] / 100);
     } else if (this.job === "도적") {
-        this.atk = (this.level * ctrl.levUpVal.atk) * (1 + ctrl.jobBonus[2] / 100);
+        this.atk = (this.level * ctrl.jobStats.atk) * (1 + ctrl.jobBonus[2] / 100);
     }
 
     // 방어력 증가
     if (this.job === "마법사") {
-        this.def = (this.level * ctrl.levUpVal.def) * (1 + ctrl.jobBonus[2] / 100);
+        this.def = (this.level * ctrl.jobStats.def) * (1 + ctrl.jobBonus[2] / 100);
     } else if (this.job === "전사") {
-        this.def = (this.level * ctrl.levUpVal.def) * (1 + ctrl.jobBonus[0] / 100);
+        this.def = (this.level * ctrl.jobStats.def) * (1 + ctrl.jobBonus[0] / 100);
     } else if (this.job === "도적") {
-        this.def = (this.level * ctrl.levUpVal.def) * (1 + ctrl.jobBonus[1] / 100);
+        this.def = (this.level * ctrl.jobStats.def) * (1 + ctrl.jobBonus[1] / 100);
     }
 
     // 행운 증가
     if (this.job === "마법사") {
-        this.luk = (this.level * ctrl.levUpVal.luk) * (1 + ctrl.jobBonus[1] / 100);
+        this.luk = (this.level * ctrl.jobStats.luk) * (1 + ctrl.jobBonus[1] / 100);
     } else if (this.job === "전사") {
-        this.luk = (this.level * ctrl.levUpVal.luk) * (1 + ctrl.jobBonus[2] / 100);
+        this.luk = (this.level * ctrl.jobStats.luk) * (1 + ctrl.jobBonus[2] / 100);
     } else if (this.job === "도적") {
-        this.luk = (this.level * ctrl.levUpVal.luk) * (1 + ctrl.jobBonus[0] / 100);
+        this.luk = (this.level * ctrl.jobStats.luk) * (1 + ctrl.jobBonus[0] / 100);
     }
 
     // 체력 증가
-    this.hp = (this.level * ctrl.levUpVal.hp[0]) + (this.level * ctrl.levUpVal.hp[1]);
+    this.hp = (this.level * 10) + (this.level * ctrl.jobBonus.hp[3]);
     this.maxHp = this.hp;
 
     // 목표 경험치 반영
@@ -510,7 +511,7 @@ Player.prototype.levelUp = function () {
 
 // 프로필 업데이트
 var profileUpdate_basic = function () {
-    var infoBasic  =document.querySelector(".info-basic");
+    var infoBasic = document.querySelector(".info-basic");
     var infoBasicVal = [player.name, player.job, player.money];
     infoBasicVal.forEach(function (val, index) {
         infoBasic.children[index].innerHTML = val;
@@ -536,7 +537,7 @@ var profileUpdate_health = function () {
 }
 
 var profileUpdate_history = function () {
-    var infoHistory  =document.querySelector(".info-history");
+    var infoHistory = document.querySelector(".info-history");
     infoHistory.children[0].children[1].innerHTML = player.vicCount;
     infoHistory.children[1].children[1].innerHTML = player.defCount;
 }
