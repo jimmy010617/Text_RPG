@@ -21,7 +21,14 @@ var ctrl = {
         luk: 10             // (레벨*10) + 보정
     },
     // 직업별 보정 수치
-    jobBonus: [10, 5, 0]    // 10/5/0%만큼 추가 스테이터스
+    jobBonus: [10, 5, 0],   // 10/5/0%만큼 추가 스테이터스
+
+    // 직업별 기본 스탯
+    jobStats: {
+        "전사": { hp: 150, atk: 40, def: 25, luk: 5 },
+        "도적": { hp: 100, atk: 25, def: 10, luk: 25 },
+        "마법사": { hp: 80, atk: 50, def: 5, luk: 15 }
+    }
 }
 
 // 몬스터 리스트
@@ -29,7 +36,7 @@ var monsterList = {
     // 이름, 레벨, HP, 공격력, 방어력, 행운
     0: [
         ["슬라임", 1, 40, 45, 10, 0],
-        ["너구리", 2, 54, 452, 15, 20],
+        ["너구리", 2, 54, 45, 15, 20],
         ["여우", 2, 61, 50, 20, 11]
     ],
     1: [
@@ -65,16 +72,16 @@ var log = function (msg, className) {
 var Character = function (name, level, hp, atk, def, luk) {
     this.name = name;
     this.level = level || 1;
-    this.hp = hp || ((this.level * ctrl.levUpVal.hp[0]) + (this.level * ctrl.levUpVal.hp[1]));
-    this.atk = atk || this.level * ctrl.levUpVal.atk;
-    this.def = def || this.level * ctrl.levUpVal.def;
-    this.luk = luk || this.level * ctrl.levUpVal.luk;
+    this.hp = hp || 0;          // 기본 체력은 Player에서 설정
+    this.atk = atk || 0;        // 기본 공격력은 Player에서 설정
+    this.def = def || 0;        // 기본 방어력은 Player에서 설정
+    this.luk = luk || 0;        // 기본 운은 Player에서 설정
     this.maxHp = this.hp;
-}
+};
 
-// 플레이어 생성자 (exp, job,, money)
+// 플레이어 생성자 (exp, job, money)
 var Player = function (name, level, hp, atk, def, luk, exp, job, money, goalExp, vicCount, defCount, state) {
-    Character.apply(this, arguments);
+    Character.call(this, name, level);
     this.exp = exp || 0;
     this.money = money || 0;
     this.goalExp = 120;
@@ -82,7 +89,7 @@ var Player = function (name, level, hp, atk, def, luk, exp, job, money, goalExp,
     this.defCount = defCount || 0;
     this.state = state || "normal";
 
-    var selectJobs = ["전사", "도적", "마법사"];
+    var selectJobs = Object.keys(ctrl.jobStats);
     if (!job) {
         var selectedJobs = prompt("직업을 선택하세요 (전사, 도적, 마법사):", "마법사");
         if (selectJobs.includes(selectedJobs)) {
@@ -94,7 +101,17 @@ var Player = function (name, level, hp, atk, def, luk, exp, job, money, goalExp,
     } else {
         this.job = job;
     }
-}
+
+    // 직업별 기본 스탯 설정
+    var selectedStats = ctrl.jobStats[this.job];
+    this.hp = hp || selectedStats.hp; // 기본 체력 설정
+    this.atk = atk || selectedStats.atk; // 기본 공격력 설정
+    this.def = def || selectedStats.def; // 기본 방어력 설정
+    this.luk = luk || selectedStats.luk; // 기본 운 설정
+
+    // 초기 maxHp 업데이트
+    this.maxHp = this.hp;
+};
 
 // 프로토타입 연결
 Player.prototype = Object.create(Character.prototype);
@@ -414,12 +431,32 @@ Character.prototype.battleDone = function (type, target) {
 
 // 회복 메서드
 Character.prototype.recovery = function () {
-    //휴식 시 체력 40% 회복
-    this.hp = this.hp + Math.floor((this.hp * 40 / 100));
-    //(단, 최대 체력을 초과할 수 없음)
+    // 이미 체력이 최대치라면 로그 출력 후 종료
     if (this.hp >= this.maxHp) {
-        this.hp = this.maxHp;
+        log(`😊 이미 체력이 만땅입니다. (${this.name}의 HP: ${this.hp})`);
+        return;
     }
+
+    // 무료 회복 여부 확인
+    if (!this.hasUsedFreeRecovery) {
+        // 첫 회복: 무료
+        this.hp += Math.floor(this.maxHp * 0.4); // 체력 40% 회복
+        if (this.hp > this.maxHp) this.hp = this.maxHp; // 최대 체력을 초과하지 않음
+        log(`😊 ${this.name}은(는) 무료로 체력을 회복합니다. (${this.name}의 HP: ${this.hp})`);
+        this.hasUsedFreeRecovery = true; // 무료 회복 사용 처리
+    } else {
+        // 이후 회복: 10골드 소모
+        if (this.money >= 10) {
+            this.money -= 10; // 10골드 차감
+            this.hp += Math.floor(this.maxHp * 0.4); // 체력 40% 회복
+            if (this.hp > this.maxHp) this.hp = this.maxHp; // 최대 체력을 초과하지 않음
+            log(`💰 10골드를 소모하여 체력을 회복했습니다. (${this.name}의 HP: ${this.hp}, 남은 골드: ${this.money})`);
+        } else {
+            // 골드 부족 시 회복 실패
+            log(`🚫 ${this.name}은(는) 골드가 부족하여 체력을 회복할 수 없습니다.`);
+        }
+    }
+
     // 프로필에 반영
     profileUpdate_health();
 }
