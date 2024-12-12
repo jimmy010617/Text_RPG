@@ -276,7 +276,6 @@ Character.prototype.attack = function (target, type) {
             // 기본 50%. 단, 행운 차이가 2배라면 100%.
             var escapeRate = 100;
 
-
             if (self.luk >= (target.luk * 2)) {
                 escapeRate = 100;
             }
@@ -367,13 +366,13 @@ Character.prototype.battleStart = function (lv) {
         turnMaster = player;
         command.on();
         playerChar.classList.add("turnOwner");
-        log(`😁 선공이다! ${turnMaster.name}은(는) ${monster.name}을(를) 먼저 공격할 수 있다.`);
+        log(`😁 선빵필승! ${turnMaster.name}은(는) ${monster.name}을(를) 먼저 공격할 수 있다.`);
     } else {
         // 플레이어 후공
         turnMaster = monster;
         command.off();
         monsterChar.classList.add("turnOwner");
-        log(`😰 기습이다! ${turnMaster.name}이(가) 먼저 공격해 올 것이다.`);
+        log(`😰 칫! 기습인가? ${turnMaster.name}이(가) 먼저 공격해 올 것이다.`);
         turnMaster.attack(player);
     }
 
@@ -453,7 +452,6 @@ Character.prototype.battleDone = function (type, target) {
     profileUpdate_basic();
     profileUpdate_level();
     profileUpdate_history();
-
 
     // 레벨업 판단
     if (this.exp >= this.goalExp) {
