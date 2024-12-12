@@ -13,23 +13,15 @@ var logArea = document.getElementById("log");
 
 // 밸런스 조절
 var ctrl = {
-    /* // 레벨업 시 상승하는 스테이터스
+    // 레벨업 시 상승하는 스테이터스
     levUpVal: {
         hp: [50, 10],   // (레벨*50) + (레벨*10)
         atk: 30,        // (레벨*30) + 보정
         def: 40,        // (레벨*40) + 보정
         luk: 10         // (레벨*10) + 보정
-    }, */
-
+    },
     // 직업별 보정 수치
-    jobBonus: [10, 5, 0, 20],   // 10/5/0%만큼 추가 스테이터스
-
-    // 직업별 기본 스탯
-    jobStats: {
-        "전사": { hp: 150, atk: 40, def: 25, luk: 5 },
-        "도적": { hp: 100, atk: 25, def: 10, luk: 25 },
-        "마법사": { hp: 80, atk: 50, def: 5, luk: 15 }
-    }
+    jobBonus: [10, 5, 0],   // 10/5/0%만큼 추가 스테이터스
 }
 
 // 몬스터 리스트
@@ -73,10 +65,10 @@ var log = function (msg, className) {
 var Character = function (name, level, hp, atk, def, luk) {
     this.name = name;
     this.level = level || 1;
-    this.hp = hp || 0;          // 기본 체력은 Player에서 설정
-    this.atk = atk || 0;        // 기본 공격력은 Player에서 설정
-    this.def = def || 0;        // 기본 방어력은 Player에서 설정
-    this.luk = luk || 0;        // 기본 운은 Player에서 설정
+    this.hp = hp || ((this.level * ctrl.levUpVal.hp[0]) + (this.level * ctrl.levUpVal.hp[1]));
+    this.atk = atk || this.level * ctrl.levUpVal.atk;
+    this.def = def || this.level * ctrl.levUpVal.def;
+    this.luk = luk || this.level * ctrl.levUpVal.luk;
     this.maxHp = this.hp;
 };
 
@@ -84,35 +76,13 @@ var Character = function (name, level, hp, atk, def, luk) {
 var Player = function (name, level, hp, atk, def, luk, exp, job, money, goalExp, vicCount, defCount, state) {
     Character.call(this, name, level);
     this.exp = exp || 0;
+    this.job = job || "마법사";
     this.money = money || 0;
     this.goalExp = 120;
     this.vicCount = vicCount || 0;
     this.defCount = defCount || 0;
     this.state = state || "normal";
-
-    var selectJobs = Object.keys(ctrl.jobStats);
-    if (!job) {
-        var selectedJobs = prompt("직업을 선택하세요 (전사, 도적, 마법사):", "마법사");
-        if (selectJobs.includes(selectedJobs)) {
-            this.job = selectedJobs;
-        } else {
-            alert("유효하지 않은 직업입니다. 기본 직업(마법사)으로 설정됩니다.");
-            this.job = "마법사";
-        }
-    } else {
-        this.job = job;
-    }
-
-    // 직업별 기본 스탯 설정
-    var selectedStats = ctrl.jobStats[this.job];
-    this.hp = hp || selectedStats.hp; // 기본 체력 설정
-    this.atk = atk || selectedStats.atk; // 기본 공격력 설정
-    this.def = def || selectedStats.def; // 기본 방어력 설정
-    this.luk = luk || selectedStats.luk; // 기본 운 설정
-
-    // 초기 maxHp 업데이트
-    this.maxHp = this.hp;
-};
+}
 
 // 프로토타입 연결
 Player.prototype = Object.create(Character.prototype);
@@ -432,32 +402,12 @@ Character.prototype.battleDone = function (type, target) {
 
 // 회복 메서드
 Character.prototype.recovery = function () {
-    // 이미 체력이 최대치라면 로그 출력 후 종료
+    // 휴식 시 체력 40% 회복
+    this.hp = this.hp + Math.floor((this.hp * 40 / 100));
+    //(단, 체대 체력을 초과할 수 없음)
     if (this.hp >= this.maxHp) {
-        log(`😊 이미 체력이 만땅입니다. (${this.name}의 HP: ${this.hp})`);
-        return;
+        this.hp = this.maxHp;
     }
-
-    // 무료 회복 여부 확인
-    if (!this.hasUsedFreeRecovery) {
-        // 첫 회복: 무료
-        this.hp += Math.floor(this.maxHp * 0.4); // 체력 40% 회복
-        if (this.hp > this.maxHp) this.hp = this.maxHp; // 최대 체력을 초과하지 않음
-        log(`😊 ${this.name}은(는) 무료로 체력을 회복합니다. (${this.name}의 HP: ${this.hp})`);
-        this.hasUsedFreeRecovery = true; // 무료 회복 사용 처리
-    } else {
-        // 이후 회복: 10골드 소모
-        if (this.money >= 10) {
-            this.money -= 10; // 10골드 차감
-            this.hp += Math.floor(this.maxHp * 0.4); // 체력 40% 회복
-            if (this.hp > this.maxHp) this.hp = this.maxHp; // 최대 체력을 초과하지 않음
-            log(`💰 10골드를 소모하여 체력을 회복했습니다. (${this.name}의 HP: ${this.hp}, 남은 골드: ${this.money})`);
-        } else {
-            // 골드 부족 시 회복 실패
-            log(`🚫 ${this.name}은(는) 골드가 부족하여 체력을 회복할 수 없습니다.`);
-        }
-    }
-
     // 프로필에 반영
     profileUpdate_health();
 }
@@ -496,7 +446,7 @@ Player.prototype.levelUp = function () {
     }
 
     // 체력 증가
-    this.hp = (this.level * 10) + (this.level * ctrl.jobBonus.hp[3]);
+    this.hp = (this.level * ctrl.levUpVal.hp[0]) + (this.level * ctrl.levUpVal.hp[1]);
     this.maxHp = this.hp;
 
     // 목표 경험치 반영
