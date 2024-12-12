@@ -127,7 +127,21 @@ var Character = function (name, level, hp, atk, def, luk) {
 var Player = function (name, level, hp, atk, def, luk, exp, job, money, goalExp, vicCount, defCount, state) {
     Character.apply(this, arguments);
     this.exp = exp || 0;
-    this.job = job || "마법사";
+    
+    // 직업 선택 로직
+    var availableJobs = ["전사", "도적", "마법사"];
+    if (!job) {
+        var selectedJob = prompt("직업을 선택하세요 (전사, 도적, 마법사):", "마법사");
+        if (availableJobs.includes(selectedJob)) {
+            this.job = selectedJob;
+        } else {
+            alert("유효하지 않은 직업입니다. 기본 직업(마법사)으로 설정됩니다.");
+            this.job = "마법사";
+        }
+    } else {
+        this.job = job;
+    }
+
     this.money = money || 0;
     this.goalExp = 120;
     this.vicCount = vicCount || 0;
@@ -417,8 +431,13 @@ Character.prototype.battleDone = function (type, target) {
     }
 
     // 승리로 인한 전투종료인 경우
-    log(`🎉 전투에서 승리했다! ${target.name}을(를) 물리쳤다.`, "vic");
-    player.vicCount++;
+    if  (type === "victory") {
+        // 몬스터 체력이 0일 경우 승리 판정
+        if (target.hp <= 0) {
+            log(`🎉 전투에서 승리했다! ${target.name}을(를) 물리쳤다.`, "vic");
+            player.vicCount++;
+        }
+    }
 
     // 보상으로 얻을 경험치와 골드 계산
     var gainedExp = Math.floor(getRandom(5, 30) + (target.level * 60));
