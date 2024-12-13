@@ -201,27 +201,37 @@ Character.prototype.attack = function (target, type = "") {
         }
     };
 
-    // 방어 확률 계산
-    var defendSuccess = function () {
-        var defendRate = 30;    // 기본 방어 성공 확률 30%
+    // 방어 로직
+    if (type === "defend") {
+        log(`🛡 ${self.name}이(가) 방어를 시도한다.`, "tryToDef");
 
-        if (self.def > target.luk) {
-            defendRate += 10;   // 캐릭터의 행운이 높을수록 방어 성공공확률 증가
-        }
-        if (self.def >= (target.luk * 2)) {
-            defendRate += 20;   // 캐릭터의 행운이 2배 이상일 경우 추가 증가
-        }
+        setTimeout(function () {
+            var defendRate = 30; // 기본 방어 성공 확률
+            if (self.def > target.luk) defendRate += 10;
+            if (self.def >= target.luk * 2) defendRate += 20;
 
-        return getRandom() <= defendRate;
-    };
+            if (getRandom() <= defendRate) {
+                damage = Math.floor(damage / 2); // 방어 성공 시 데미지 절반
+                log(`🛡 방어에 성공했다! 데미지가 감소한다.`);
+            } else {
+                log(`💥 방어에 실패했다... 정상적인 데미지를 받는다.`);
+            }
+
+            // 방어 후 데미지 계산 및 HP 업데이트
+            self.hp -= damage;
+            self.hp = Math.max(0, self.hp);
+            profileUpdate_health();
+            
+            // 데미지 결과 로그 출력
+            log(`💥 ${self.name}이(가) ${damage}의 데미지를 입었다. (HP: ${self.hp})`, "def");
+        }, 1000);
+        return false;
+    }
+    
 
     // 공격 시작
     var battleOn = function () {
-        if (type === "defend") {
-            log(`🛡 ${self.name}이(가) 방어를 시도한다.`, "tryToDef");
-        } else {
-            log(`🗡 ${self.name}이(가) ${target.name}을(를) 공격한다.`, "tryToAtk");
-        }
+        log(`🗡 ${self.name}이(가) ${target.name}을(를) 공격한다.`, "tryToAtk");
     };
 
     // 공격 결과 판정
