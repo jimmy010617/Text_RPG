@@ -348,6 +348,10 @@ strong {
     color: #d96868; 
 }
 
+.msg-tryToDef {
+    color: #222;
+}
+
 @keyframes msgShow {
     0% {
         transform: translateY(10px); }

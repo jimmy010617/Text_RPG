@@ -164,10 +164,8 @@ var makeMonster = function (lv) {
 }
 
 // 공격 메서드
-Character.prototype.attack = function (target, type) {
+Character.prototype.attack = function (target, type = "") {
     var self = this;
-    var target = target;
-    var type = type || "";
 
     // 데미지 산출
     var atkCalc = (Math.floor(Math.random() * (self.atk * 0.1 * 2 + 1)) - (self.atk * 0.1));
@@ -175,7 +173,6 @@ Character.prototype.attack = function (target, type) {
     atkCalc < 1 ? atkCalc = 0 : atkCalc;
     defCalc < 1 ? defCalc = 0 : defCalc;
     var damage = Math.ceil(((self.atk + atkCalc) - (target.def + defCalc)));
-
 
     // 크리티컬 확률 계산
     var isCritical = function () {
@@ -204,10 +201,28 @@ Character.prototype.attack = function (target, type) {
         }
     };
 
+    // 방어 확률 계산
+    var defendSuccess = function () {
+        var defendRate = 30;    // 기본 방어 성공 확률 30%
+
+        if (self.def > target.luk) {
+            defendRate += 10;   // 캐릭터의 행운이 높을수록 방어 성공공확률 증가
+        }
+        if (self.def >= (target.luk * 2)) {
+            defendRate += 20;   // 캐릭터의 행운이 2배 이상일 경우 추가 증가
+        }
+
+        return getRandom() <= defendRate;
+    };
+
     // 공격 시작
     var battleOn = function () {
-        log(`🗡 ${self.name}이(가) ${target.name}을(를) 공격한다.`, "tryToAtk");
-    }
+        if (type === "defend") {
+            log(`🛡 ${self.name}이(가) 방어를 시도한다.`, "tryToDef");
+        } else {
+            log(`🗡 ${self.name}이(가) ${target.name}을(를) 공격한다.`, "tryToAtk");
+        }
+    };
 
     // 공격 결과 판정
     var battleResult = function () {
@@ -218,6 +233,7 @@ Character.prototype.attack = function (target, type) {
             command.off();
             return false;
         }
+
         // 크리티컬 여부
         if (isCritical()) {
             log(`⚡️ 크리티컬 히트!`, "cri");
@@ -402,6 +418,7 @@ Character.prototype.battleDone = function (type, target) {
         setTimeout(function () {
             log(`......`);
         }, 1000);
+
         setTimeout(function () {
             log(`😥 잠시 쉬고 일어나 체력을 모두 회복했다. 다시 가보자!`);
             // 체력 회복
@@ -547,7 +564,6 @@ var profileUpdate_level = function () {
     infoLevel.children[1].children[1].children[0].children[1].innerHTML = `${player.exp} / ${player.goalExp} (${expPercent}%)`;
 }
 
-
 var profileUpdate_health = function () {
     var infoHealth = document.querySelector(".status-hp");
     var hpPercent = Math.floor((player.hp * 100) / player.maxHp);
@@ -617,12 +633,23 @@ var command = {
                 monster.attack(player);
             }, 1000);
         }
-  },
-  recovery: function () {
+    },
+    defend: function () {
+        player.defend(monster, "defend");
+        command.off();
+
+        if (monster.hp > 0) {
+            setTimeout(function () {
+                command.off();
+                monster.attack(player);
+            }, 1000);
+        }
+    },
+    recovery: function () {
         player.recovery();
     },
 
-  dungeon: {
+    dungeon: {
         on: function () {
             dungeonMenu.classList.add("on");
         },
@@ -655,9 +682,12 @@ battleMenu.addEventListener("click", function (e) {
         command.atk();
     }
     if (e.target === battleMenu.children[1]) {
-        command.atk("recovery");
+        command.atk("defend");
     }
     if (e.target === battleMenu.children[2]) {
+        command.atk("recovery");
+    }
+    if (e.target === battleMenu.children[3]) {
         command.atk("escape");
     }
 });
