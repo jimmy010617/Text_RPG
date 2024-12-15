@@ -206,24 +206,26 @@ Character.prototype.attack = function (target, type = "") {
         log(`🛡 ${self.name}이(가) 방어를 시도한다.`, "tryToDef");
 
         setTimeout(function () {
-            var defendRate = 30; // 기본 방어 성공 확률
+            var defDamage = Math.ceil(((target.atk + atkCalc) - (self.def + defCalc)));
+            var defendRate = 50; // 기본 방어 성공 확률
             if (self.def > target.luk) defendRate += 10;
             if (self.def >= target.luk * 2) defendRate += 20;
 
             if (getRandom() <= defendRate) {
-                damage = Math.floor(damage / 2); // 방어 성공 시 데미지 절반
+                defDamage = Math.floor(damage / 2); // 방어 성공 시 데미지 절반
                 log(`🛡 방어에 성공했다! 데미지가 감소한다.`);
+                log(`💥 ${self.name}이(가) ${defDamage}의 데미지를 입었다. (HP: ${self.hp})`, "def");
+                playerChar.classList.remove("turnOwner");
             } else {
                 log(`💥 방어에 실패했다... 정상적인 데미지를 받는다.`);
+                log(`💥 ${self.name}이(가) ${damage}의 데미지를 입었다. (HP: ${self.hp})`, "def");
+                playerChar.classList.remove("turnOwner");
             }
 
             // 방어 후 데미지 계산 및 HP 업데이트
             self.hp -= damage;
             self.hp = Math.max(0, self.hp);
             profileUpdate_health();
-            
-            // 데미지 결과 로그 출력
-            log(`💥 ${self.name}이(가) ${damage}의 데미지를 입었다. (HP: ${self.hp})`, "def");
         }, 1000);
         return false;
     }
