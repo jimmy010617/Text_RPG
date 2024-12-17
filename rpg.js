@@ -163,7 +163,7 @@ var makeMonster = function (lv) {
     return newMonster;
 }
 
-// 공격 메서드
+// 전투 메서드
 Character.prototype.attack = function (target, type = "") {
     var self = this;
 
@@ -201,35 +201,12 @@ Character.prototype.attack = function (target, type = "") {
         }
     };
 
-    // 방어 로직
-    if (type === "defend") {
-        log(`🛡 ${self.name}이(가) 방어를 시도한다.`, "tryToDef");
-
-        setTimeout(function () {
-            var defDamage = Math.ceil(((target.atk + atkCalc) - (self.def + defCalc)));
-            var defendRate = 50; // 기본 방어 성공 확률
-            if (self.def > target.luk) defendRate += 10;
-            if (self.def >= target.luk * 2) defendRate += 20;
-
-            if (getRandom() <= defendRate) {
-                defDamage = Math.floor(damage / 2); // 방어 성공 시 데미지 절반
-                log(`🛡 방어에 성공했다! 데미지가 감소한다.`);
-                log(`💥 ${self.name}이(가) ${defDamage}의 데미지를 입었다. (HP: ${self.hp})`, "def");
-                playerChar.classList.remove("turnOwner");
-            } else {
-                log(`💥 방어에 실패했다... 정상적인 데미지를 받는다.`);
-                log(`💥 ${self.name}이(가) ${damage}의 데미지를 입었다. (HP: ${self.hp})`, "def");
-                playerChar.classList.remove("turnOwner");
-            }
-
-            // 방어 후 데미지 계산 및 HP 업데이트
-            self.hp -= damage;
-            self.hp = Math.max(0, self.hp);
-            profileUpdate_health();
-        }, 1000);
-        return false;
+    // 방어 상태 확인
+    if (target.isDefending) {
+        damage = Math.floor(damage / 2);
+        log(`🛡 방어 성공! 받는 데미지가 절반으로 감소한다.`);
+        target.isDefending = false; // 방어 상태 해제
     }
-    
 
     // 공격 시작
     var battleOn = function () {
@@ -375,6 +352,23 @@ Character.prototype.attack = function (target, type = "") {
         }, 1000);
     }
 }
+
+// 방어 메소드
+Character.prototype.defend = function () {
+    var self = this;
+
+    // 방어 상태 활성화
+    self.isDefending = true;
+
+    // 로그 출력
+    log(`🛡 ${self.name}이(가) 방어 태세를 취한다.`, "defend");
+
+    // 턴 넘기기
+    playerChar.classList.remove("turnOwner");
+    setTimeout(function () {
+        monster.attack(self); // 몬스터의 공격 실행
+    }, 1000);
+};
 
 // 전투 시작 메서드
 Character.prototype.battleStart = function (lv) {
@@ -647,15 +641,8 @@ var command = {
         }
     },
     defend: function () {
-        player.defend(monster, "defend");
+        player.defend();
         command.off();
-
-        if (monster.hp > 0) {
-            setTimeout(function () {
-                command.off();
-                monster.attack(player);
-            }, 1000);
-        }
     },
     recovery: function () {
         player.recovery();
@@ -694,7 +681,7 @@ battleMenu.addEventListener("click", function (e) {
         command.atk();
     }
     if (e.target === battleMenu.children[1]) {
-        command.atk("defend");
+        command.defend();
     }
     if (e.target === battleMenu.children[2]) {
         command.atk("recovery");
