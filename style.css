@@ -1,19 +1,81 @@
 @charset "UTF-8";
 * {
     margin: 0;
-    padding: 0; }
+    padding: 0; 
+}
 
 @font-face {
     font-family: "statFont";
     src: url("https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_four@1.1/netmarbleM.woff") format("woff");
     font-weight: normal;
-    font-style: normal; }
+    font-style: normal; 
+}
 
 @font-face {
     font-family: "logFont";
     src: url("https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_eight@1.0/DOSMyungjo.woff") format("woff");
     font-weight: normal;
-    font-style: normal; }
+    font-style: normal; 
+}
+
+.main-header {
+    min-width: 0;
+}
+
+.header-Title {
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    flex-shrink: 1;
+    flex-grow: 1;
+    min-width: 120px;
+    padding-inline-end: .5rem;
+    background-color: #222;
+}
+
+.headerTitle-text {
+    width: 100%;
+    overflow: hidden;
+}
+
+.headerTitle-type {
+    display: flex;
+    gap: .25rem;
+    row-gap: 0.25rem;
+    column-gap: 0.25rem;
+    align-items: center;
+    color: gray;
+    font-size: .9rem;
+    text-transform: none;
+    letter-spacing: 0;
+}
+
+.headerTitle-Link {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    color: inherit;
+    max-width: 100%;
+}
+
+.headerTitle-title {
+    font-family: "Lato", "Lucida Grande", "Lucida Sans Unicode", Tahoma, Sans-Serif;
+    margin: 0 0 .1rem;
+    display: flex;
+    align-items: center;
+}
+
+.headerTitle-Main {
+    color: white;
+    font-weight: 700;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    max-width: 100%;
+    display: inline-block;
+    vertical-align: middle;
+    font-size: 1.1rem;
+}
 
 .wrap {
     max-width: 1300px;

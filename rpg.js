@@ -204,7 +204,7 @@ Character.prototype.attack = function (target, type = "") {
     // 방어 상태 확인
     if (target.isDefending) {
         damage = Math.floor(damage / 2);
-        log(`🛡 방어 성공! 받는 데미지가 절반으로 감소한다.`);
+        log(`🛡 내 방패는 세계 제이이이일!!!!! 받는 데미지가 절반으로 감소한다.`);
         target.isDefending = false; // 방어 상태 해제
     }
 
@@ -230,7 +230,7 @@ Character.prototype.attack = function (target, type = "") {
         } else {
             // 크리티컬이 없었다면 회피 여부 판단
             if (isEvade()) {
-                log(`🍃 ${target.name}이(가) 공격을 회피했다.`, "fail");
+                log(`🍃 나닛? ${target.name}이(가) 공격을 회피했다.`, "fail");
                 return false;
             }
         }
